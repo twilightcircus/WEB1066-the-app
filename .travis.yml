@@ -1,10 +1,36 @@
-language: python
-install: "pip install -r requirements.txt"
+language: java
+jdk: 
+  - openjdk8
 
-script:
-  # Run ANSIBLE checks
-  # - ANSIBLE0008: Disabled for use of sudo warnings - to address
-  # - ANSIBLE0011: Disabled for all tasks which should be named
-  # - ANSIBLE0012: Disabled (should not change if nothings needs doing) - to address
-  # - ANSIBLE0013: Disabled - few uses of shell commands - to address
-  - find vagrant/provision -name "*.yml" -exec ansible-lint -x ANSIBLE008,ANSIBLE0011,ANSIBLE0012,ANSIBLE0013  {} +
+services:
+  - docker
+
+env:
+  matrix:
+  - COVERAGE=0 TARGET=./monolithic/ui
+  - COVERAGE=0 TARGET=./monolithic/service/cart
+  - COVERAGE=0 TARGET=./monolithic/service/user
+  - COVERAGE=0.3 TARGET=./monolithic/repository/order
+  - COVERAGE=0 TARGET=./monolithic/repository/cart
+  - COVERAGE=0 TARGET=./monolithic/repository/product
+  - COVERAGE=0.3 TARGET=./monolithic/repository/user
+
+  global:
+    - DOCKER_LOGIN=tc420
+    - secure: jRsImzWBHoJEmpc2sn/359Q0NUQ2vime44CgCwuUJRx4cDTy0qTEXE52nPi209y5c8GlfyDDAUwh/QMNuBv9rghittvgUtv6QEx1zBS+dEbkG+EzV3IaBYE+EaXVVb8yUqLifivQ+RILP+LC0sh7SS72BDn9oGa5Mut7LO3xYQcP33PcOdtrUsI6HEMhl5yAUXa83WGiFJs8XKrzpJPYcywLNfGtRjK8U2qxw3xDaQ5umTS8la56PAv1cut8VnX3pMcaJK3Klga8oWVK5wyDyTd77W+XnrsBsMmw9bLhwY+ZXBw9RpB2mQ+tQ0e2QWn2ewUiz3wAYVmwT/4wxq5SfOO2UzlSWORAexeg4+vaA3A1BEbcIJ0Te3B0/sWX5PnR1qCghshfYFCgMFMufL6JHLD4eZFXEDZirKvinw+YoYmhdJ6fzH02E/tzkNrswPOH7/EEWjNKrRxQMxfdDJMUqaiNLZX5lrfu6vHDXLhn6E7xadhZgDqiHSd+ujIUatcHmSGm9j4dCZuW/VPX1WwzR6mNE2nK+4rPcciNP9TeT/9o0xccH/RCHq2qm1qeDFbbm1Vk9o1ar4f/WP+zcQdcWAlChlub2gicFAGp9/7CLZphUxoBXiAfcaHMMmEwXyb7WUuaIHq4AxZ/qpGiqsGNcZ/IeJK4/wUjlHDQMgR0hXa14ZfKURVmlavee4rQn8ceTN3Y3qt6ZY2gj2ONOVOnla0iPSneTjWwineiIElJIOEU99XgpF0r4GuND4bsDp8QKLJ7QslcApkMk1VIeqbAC4biEtObeR1AoQ3Kvz02dxe/1U0uK6nBaSLnnqOTwOo+9bGl2D/j4yzjwRGmmXQfOgyB8t2TLBCQrJ/z3+MXSVBRYo10VDoxfk0CzxKmWlwqXcxdMcMX5+ELKST57A==
+
+install:
+  - ./gradlew clean jar
+
+before_deploy:
+  - "./gradlew -p ./monolithic/ui packageToContainer ;"
+
+deploy:
+  provider: script
+  script: chmod +x ./script/deploy.sh && ./script/deploy.sh
+  on:
+    condition: $TARGET == './monolithic/ui'
+    branch: master
+
+after_success:
+  - ./gradlew -p $TARGET check
