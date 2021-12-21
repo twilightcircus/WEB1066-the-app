@@ -2,12 +2,12 @@ language: java
 jdk: openjdk8
 
 env:
-  - COVERAGE=0.055 TARGET=./monolithic/ui
-  - COVERAGE=0.145 TARGET=./monolithic/service/cart
+  - COVERAGE=0 TARGET=./monolithic/ui
+  - COVERAGE=0 TARGET=./monolithic/service/cart
   - COVERAGE=0 TARGET=./monolithic/service/user
   - COVERAGE=0.3 TARGET=./monolithic/repository/order
   - COVERAGE=0 TARGET=./monolithic/repository/cart
-  - COVERAGE=0.125 TARGET=./monolithic/repository/product
+  - COVERAGE=0 TARGET=./monolithic/repository/product
   - COVERAGE=0.3 TARGET=./monolithic/repository/user
   
 install:
